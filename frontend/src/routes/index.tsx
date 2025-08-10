@@ -11,6 +11,7 @@ import {
 } from '@mui/material'
 import { useTasks } from '@/queries/useTasks'
 import { useCreateTask } from '@/queries/useCreateTask'
+import { useUpdateTask } from '@/queries/useUpdateTask'
 
 interface Todo {
   id: number
@@ -25,6 +26,7 @@ export const Route = createFileRoute('/')({
 function App() {
   const { data: tasks = [] } = useTasks()
   const { mutate: createTask } = useCreateTask()
+  const { mutate: updateTask } = useUpdateTask()
   const todos: Array<Todo> = tasks.map((task) => ({
     id: task.id,
     done: task.done,
@@ -65,7 +67,16 @@ function App() {
       <List>
         {todos.map((todo) => (
           <ListItem key={todo.id} disablePadding>
-            <Checkbox checked={todo.done} />
+            <Checkbox
+              checked={todo.done}
+              onChange={(event) => {
+                const checked = event.target.checked
+                updateTask({
+                  id: todo.id,
+                  done: checked,
+                })
+              }}
+            />
             <ListItemText
               primary={todo.text}
               sx={{
