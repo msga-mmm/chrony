@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { List, ListItem, ListItemText, Checkbox } from '@mui/material';
+import { Checkbox, List, ListItem, ListItemText } from '@mui/material';
+import { useTasks } from '@/queries/useTasks';
+
 
 interface Todo {
   id: number;
@@ -7,17 +9,19 @@ interface Todo {
   done: boolean;
 }
 
-const todos: Todo[] = [
-  { id: 1, text: 'Buy milk', done: false },
-  { id: 2, text: 'Finish report', done: true },
-  { id: 3, text: 'Book flight', done: false },
-];
-
 export const Route = createFileRoute('/')({
   component: App,
 })
 
 function App() {
+  const { data: tasks = [] } = useTasks()
+
+  const todos: Array<Todo> = tasks.map(task => ({
+    id: task.id,
+    done: false,
+    text: task.title
+  }))
+
   return (
     <List>
       {todos.map((todo) => (
