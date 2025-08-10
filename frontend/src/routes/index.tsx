@@ -1,5 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router'
-import logo from '../logo.svg'
+import { List, ListItem, ListItemText, Checkbox } from '@mui/material';
+
+interface Todo {
+  id: number;
+  text: string;
+  done: boolean;
+}
+
+const todos: Todo[] = [
+  { id: 1, text: 'Buy milk', done: false },
+  { id: 2, text: 'Finish report', done: true },
+  { id: 3, text: 'Book flight', done: false },
+];
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -7,33 +19,13 @@ export const Route = createFileRoute('/')({
 
 function App() {
   return (
-    <div className="text-center">
-      <header className="min-h-screen flex flex-col items-center justify-center bg-[#282c34] text-white text-[calc(10px+2vmin)]">
-        <img
-          src={logo}
-          className="h-[40vmin] pointer-events-none animate-[spin_20s_linear_infinite]"
-          alt="logo"
-        />
-        <p>
-          Edit <code>src/routes/index.tsx</code> and save to reload.
-        </p>
-        <a
-          className="text-[#61dafb] hover:underline"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <a
-          className="text-[#61dafb] hover:underline"
-          href="https://tanstack.com"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn TanStack
-        </a>
-      </header>
-    </div>
+    <List>
+      {todos.map((todo) => (
+        <ListItem key={todo.id} disablePadding>
+          <Checkbox checked={todo.done} />
+          <ListItemText primary={todo.text} />
+        </ListItem>
+      ))}
+    </List>
   )
 }
