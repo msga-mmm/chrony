@@ -27,7 +27,7 @@ function App() {
   const { mutate: createTask } = useCreateTask()
   const todos: Array<Todo> = tasks.map((task) => ({
     id: task.id,
-    done: false,
+    done: task.done,
     text: task.title,
   }))
   const [newTodoText, setNewTodoText] = useState('')
