@@ -3,6 +3,7 @@ import axios from 'axios'
 
 interface Task {
   title: string
+	due_date?: string | null
 }
 
 export function useCreateTask() {

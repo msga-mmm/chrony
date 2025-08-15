@@ -9,15 +9,13 @@ import {
   ListItemText,
   TextField,
 } from '@mui/material'
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import dayjs, { Dayjs } from 'dayjs'
 import { useTasks } from '@/queries/useTasks'
 import { useCreateTask } from '@/queries/useCreateTask'
 import { useUpdateTask } from '@/queries/useUpdateTask'
-
-interface Todo {
-  id: number
-  text: string
-  done: boolean
-}
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -27,19 +25,17 @@ function App() {
   const { data: tasks = [] } = useTasks()
   const { mutate: createTask } = useCreateTask()
   const { mutate: updateTask } = useUpdateTask()
-  const todos: Array<Todo> = tasks.map((task) => ({
-    id: task.id,
-    done: task.done,
-    text: task.title,
-  }))
   const [newTodoText, setNewTodoText] = useState('')
+  const [newTodoDueDate, setNewTodoDueDate] = useState<Dayjs | null>(null)
 
   const handleAddTodo = () => {
     if (!newTodoText.trim()) return
     createTask({
       title: newTodoText,
+      due_date: newTodoDueDate ? newTodoDueDate.toISOString() : null,
     })
     setNewTodoText('')
+    setNewTodoDueDate(null)
   }
 
   return (
@@ -59,28 +55,39 @@ function App() {
             }
           }}
         />
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DateTimePicker
+            label="Due Date (Optional)"
+            value={newTodoDueDate}
+            onChange={(newValue) => setNewTodoDueDate(newValue)}
+            slotProps={{
+              textField: { size: 'small', fullWidth: true },
+            }}
+          />
+        </LocalizationProvider>
         <Button variant="contained" onClick={handleAddTodo}>
           Add
         </Button>
       </Box>
 
       <List>
-        {todos.map((todo) => (
-          <ListItem key={todo.id} disablePadding>
+        {tasks.map((task) => (
+          <ListItem key={task.id} disablePadding>
             <Checkbox
-              checked={todo.done}
+              checked={task.done}
               onChange={(event) => {
                 const checked = event.target.checked
                 updateTask({
-                  id: todo.id,
+                  id: task.id,
                   done: checked,
                 })
               }}
             />
             <ListItemText
-              primary={todo.text}
+              primary={task.title}
+              secondary={task.due_date ? `Due: ${dayjs(task.due_date).format('YYYY-MM-DD HH:mm')}` : null}
               sx={{
-                textDecoration: todo.done ? 'line-through' : 'none',
+                textDecoration: task.done ? 'line-through' : 'none',
               }}
             />
           </ListItem>

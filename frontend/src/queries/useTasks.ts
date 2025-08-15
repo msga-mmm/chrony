@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 
-interface Task {
+export interface Task {
   id: number
   title: string
   created_at: string
   done: boolean
+  due_date: string | null
 }
 
 export function useTasks() {
