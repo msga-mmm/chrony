@@ -9,8 +9,9 @@
     "serve": "vite preview",
     "test": "vitest run",
     "lint": "eslint",
-    "format": "prettier",
-    "check": "prettier --write . && eslint --fix"
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "bun run format:check && bun run lint"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

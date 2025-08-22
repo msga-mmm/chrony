@@ -22,6 +22,7 @@ export const Route = createFileRoute('/')({
 })
 
 function App() {
+  const now = new Date()
   const { data: tasks = [] } = useTasks()
   const { mutate: createTask } = useCreateTask()
   const { mutate: updateTask } = useUpdateTask()
@@ -71,27 +72,40 @@ function App() {
       </Box>
 
       <List>
-        {tasks.map((task) => (
-          <ListItem key={task.id} disablePadding>
-            <Checkbox
-              checked={task.done}
-              onChange={(event) => {
-                const checked = event.target.checked
-                updateTask({
-                  id: task.id,
-                  done: checked,
-                })
-              }}
-            />
-            <ListItemText
-              primary={task.title}
-              secondary={task.due_date ? `Due: ${dayjs(task.due_date).format('YYYY-MM-DD HH:mm')}` : null}
-              sx={{
-                textDecoration: task.done ? 'line-through' : 'none',
-              }}
-            />
-          </ListItem>
-        ))}
+        {tasks.map((task) => {
+          const isPastDueDate = dayjs(now).isAfter(task.due_date)
+
+          return (
+            <ListItem key={task.id} disablePadding>
+              <Checkbox
+                checked={task.done}
+                onChange={(event) => {
+                  const checked = event.target.checked
+                  updateTask({
+                    id: task.id,
+                    done: checked,
+                  })
+                }}
+              />
+              <ListItemText
+                primary={task.title}
+                secondary={
+                  task.due_date
+                    ? `Due: ${dayjs(task.due_date).format('YYYY-MM-DD HH:mm')}`
+                    : null
+                }
+                sx={{
+                  textDecoration: task.done ? 'line-through' : 'none',
+                }}
+                slotProps={{
+                  secondary: {
+                    color: isPastDueDate ? 'red' : undefined,
+                  },
+                }}
+              />
+            </ListItem>
+          )
+        })}
       </List>
     </Box>
   )
