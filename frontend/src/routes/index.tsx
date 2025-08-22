@@ -8,6 +8,11 @@ import {
   ListItem,
   ListItemText,
   TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  type SelectChangeEvent,
 } from '@mui/material'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -23,7 +28,13 @@ export const Route = createFileRoute('/')({
 
 function App() {
   const now = new Date()
-  const { data: tasks = [] } = useTasks()
+  const [filter, setFilter] = useState<'all' | 'completed' | 'not-completed'>(
+    'all',
+  )
+  const isCompletedFilter =
+    filter === 'completed' ? true : filter === 'not-completed' ? false : null
+
+  const { data: tasks = [] } = useTasks({ done: isCompletedFilter })
   const { mutate: createTask } = useCreateTask()
   const { mutate: updateTask } = useUpdateTask()
   const [newTodoText, setNewTodoText] = useState('')
@@ -37,6 +48,10 @@ function App() {
     })
     setNewTodoText('')
     setNewTodoDueDate(null)
+  }
+
+  const handleFilterChange = (event: SelectChangeEvent) => {
+    setFilter(event.target.value as 'all' | 'completed' | 'not-completed')
   }
 
   return (
@@ -70,6 +85,20 @@ function App() {
           Add
         </Button>
       </Box>
+
+      <FormControl size="small" sx={{ mb: 2, minWidth: 120 }}>
+        <InputLabel id="filter-select-label">Filter</InputLabel>
+        <Select
+          labelId="filter-select-label"
+          value={filter}
+          label="Filter"
+          onChange={handleFilterChange}
+        >
+          <MenuItem value="all">All</MenuItem>
+          <MenuItem value="completed">Completed</MenuItem>
+          <MenuItem value="not-completed">Not Completed</MenuItem>
+        </Select>
+      </FormControl>
 
       <List>
         {tasks.map((task) => {

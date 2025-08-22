@@ -9,11 +9,17 @@ export interface Task {
   due_date: string | null
 }
 
-export function useTasks() {
+interface UseTasksParams {
+  done?: boolean | null
+}
+
+export function useTasks(params?: UseTasksParams) {
   return useQuery<Task[]>({
-    queryKey: ['tasks'],
+    queryKey: ['tasks', params],
     queryFn: async () => {
-      const { data } = await axios.get('http://localhost:8000/api/tasks/')
+      const { data } = await axios.get('http://localhost:8000/api/tasks/', {
+        params,
+      })
       return data
     },
   })
