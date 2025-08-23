@@ -27,14 +27,27 @@ export const Route = createFileRoute('/')({
 })
 
 function App() {
-  const now = new Date()
   const [filter, setFilter] = useState<'all' | 'completed' | 'not-completed'>(
     'all',
   )
+  const [dueStatusFilter, setDueStatusFilter] = useState<
+    'all' | 'past-due' | 'upcoming'
+  >('all')
+
   const isCompletedFilter =
     filter === 'completed' ? true : filter === 'not-completed' ? false : null
 
-  const { data: tasks = [] } = useTasks({ done: isCompletedFilter })
+  const isPastDueFilter =
+    dueStatusFilter === 'past-due'
+      ? true
+      : dueStatusFilter === 'upcoming'
+        ? false
+        : undefined
+
+  const { data: tasks = [] } = useTasks({
+    done: isCompletedFilter,
+    isPastDue: isPastDueFilter,
+  })
   const { mutate: createTask } = useCreateTask()
   const { mutate: updateTask } = useUpdateTask()
   const [newTodoText, setNewTodoText] = useState('')
@@ -87,11 +100,11 @@ function App() {
       </Box>
 
       <FormControl size="small" sx={{ mb: 2, minWidth: 120 }}>
-        <InputLabel id="filter-select-label">Filter</InputLabel>
+        <InputLabel id="filter-select-label">Status Filter</InputLabel>
         <Select
           labelId="filter-select-label"
           value={filter}
-          label="Filter"
+          label="Status Filter"
           onChange={handleFilterChange}
         >
           <MenuItem value="all">All</MenuItem>
@@ -100,10 +113,28 @@ function App() {
         </Select>
       </FormControl>
 
+      <FormControl size="small" sx={{ mb: 2, minWidth: 120, ml: 2 }}>
+        <InputLabel id="due-status-filter-select-label">
+          Due Date Filter
+        </InputLabel>
+        <Select
+          labelId="due-status-filter-select-label"
+          value={dueStatusFilter}
+          label="Due Date Filter"
+          onChange={(event) =>
+            setDueStatusFilter(
+              event.target.value as 'all' | 'past-due' | 'upcoming',
+            )
+          }
+        >
+          <MenuItem value="all">All</MenuItem>
+          <MenuItem value="past-due">Past Due</MenuItem>
+          <MenuItem value="upcoming">Upcoming</MenuItem>
+        </Select>
+      </FormControl>
+
       <List>
         {tasks.map((task) => {
-          const isPastDueDate = dayjs(now).isAfter(task.due_date)
-
           return (
             <ListItem key={task.id} disablePadding>
               <Checkbox
@@ -128,7 +159,7 @@ function App() {
                 }}
                 slotProps={{
                   secondary: {
-                    color: isPastDueDate ? 'red' : undefined,
+                    color: task.is_past_due ? 'red' : undefined,
                   },
                 }}
               />

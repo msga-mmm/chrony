@@ -7,10 +7,12 @@ export interface Task {
   created_at: string
   done: boolean
   due_date: string | null
+  is_past_due?: boolean
 }
 
 interface UseTasksParams {
   done?: boolean | null
+  isPastDue?: boolean | null
 }
 
 export function useTasks(params?: UseTasksParams) {
@@ -18,7 +20,10 @@ export function useTasks(params?: UseTasksParams) {
     queryKey: ['tasks', params],
     queryFn: async () => {
       const { data } = await axios.get('http://localhost:8000/api/tasks/', {
-        params,
+        params: {
+          done: params?.done,
+          is_past_due: params?.isPastDue,
+        },
       })
       return data
     },
