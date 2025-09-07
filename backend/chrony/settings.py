@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "tasks",
     "corsheaders",
     "django_filters",
+    "safedelete",
 ]
 
 MIDDLEWARE = [

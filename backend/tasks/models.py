@@ -1,7 +1,7 @@
 from django.db import models
+from safedelete.models import SafeDeleteModel
 
-
-class Task(models.Model):
+class Task(SafeDeleteModel):
     title = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     done = models.BooleanField(default=False)

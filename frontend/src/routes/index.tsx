@@ -12,8 +12,10 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  IconButton,
   type SelectChangeEvent,
 } from '@mui/material'
+import DeleteIcon from '@mui/icons-material/Delete'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
@@ -21,6 +23,7 @@ import dayjs, { Dayjs } from 'dayjs'
 import { useTasks } from '@/queries/useTasks'
 import { useCreateTask } from '@/queries/useCreateTask'
 import { useUpdateTask } from '@/queries/useUpdateTask'
+import { useDeleteTask } from '@/queries/useDeleteTask'
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -50,6 +53,7 @@ function App() {
   })
   const { mutate: createTask } = useCreateTask()
   const { mutate: updateTask } = useUpdateTask()
+  const { mutate: deleteTask } = useDeleteTask()
   const [newTodoText, setNewTodoText] = useState('')
   const [newTodoDueDate, setNewTodoDueDate] = useState<Dayjs | null>(null)
 
@@ -163,6 +167,13 @@ function App() {
                   },
                 }}
               />
+              <IconButton
+                aria-label="delete"
+                onClick={() => deleteTask(task.id)}
+                size="small"
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
             </ListItem>
           )
         })}
