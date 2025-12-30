@@ -60,134 +60,111 @@ function App() {
   const { mutate: createTask } = useCreateTask()
   const { mutate: updateTask } = useUpdateTask()
   const { mutate: deleteTask } = useDeleteTask()
-  const [newTodoText, setNewTodoText] = useState('')
-  const [newTodoDescription, setNewTodoDescription] = useState('')
-  const [newTodoDueDate, setNewTodoDueDate] = useState<Dayjs | null>(null)
+  const [dialogMode, setDialogMode] = useState<'create' | 'edit' | null>(null)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
-  const [editTitle, setEditTitle] = useState('')
-  const [editDescription, setEditDescription] = useState('')
-  const [editDueDate, setEditDueDate] = useState<Dayjs | null>(null)
-
-  const handleAddTodo = () => {
-    if (!newTodoText.trim()) return
-    createTask({
-      title: newTodoText,
-      due_date: newTodoDueDate ? newTodoDueDate.toISOString() : null,
-      description: newTodoDescription.trim() || null,
-    })
-    setNewTodoText('')
-    setNewTodoDescription('')
-    setNewTodoDueDate(null)
-  }
+  const [draftTitle, setDraftTitle] = useState('')
+  const [draftDescription, setDraftDescription] = useState('')
+  const [draftDueDate, setDraftDueDate] = useState<Dayjs | null>(null)
 
   const handleFilterChange = (event: SelectChangeEvent) => {
     setFilter(event.target.value as 'all' | 'completed' | 'not-completed')
   }
 
-  const handleEditOpen = (task: Task) => {
-    setEditingTask(task)
-    setEditTitle(task.title)
-    setEditDescription(task.description ?? '')
-    setEditDueDate(task.due_date ? dayjs(task.due_date) : null)
-  }
-
-  const handleEditClose = () => {
+  const handleCreateOpen = () => {
+    setDialogMode('create')
     setEditingTask(null)
-    setEditTitle('')
-    setEditDescription('')
-    setEditDueDate(null)
+    setDraftTitle('')
+    setDraftDescription('')
+    setDraftDueDate(null)
   }
 
-  const handleEditSave = () => {
-    if (!editingTask) return
-    const trimmedTitle = editTitle.trim()
+  const handleEditOpen = (task: Task) => {
+    setDialogMode('edit')
+    setEditingTask(task)
+    setDraftTitle(task.title)
+    setDraftDescription(task.description ?? '')
+    setDraftDueDate(task.due_date ? dayjs(task.due_date) : null)
+  }
+
+  const handleDialogClose = () => {
+    setDialogMode(null)
+    setEditingTask(null)
+    setDraftTitle('')
+    setDraftDescription('')
+    setDraftDueDate(null)
+  }
+
+  const handleDialogSave = () => {
+    const trimmedTitle = draftTitle.trim()
     if (!trimmedTitle) return
-    updateTask({
-      id: editingTask.id,
+
+    const payload = {
       title: trimmedTitle,
-      due_date: editDueDate ? editDueDate.toISOString() : null,
-      description: editDescription.trim() || null,
-    })
-    handleEditClose()
+      due_date: draftDueDate ? draftDueDate.toISOString() : null,
+      description: draftDescription.trim() || null,
+    }
+
+    if (dialogMode === 'edit') {
+      if (!editingTask) return
+      updateTask({
+        id: editingTask.id,
+        ...payload,
+      })
+    } else {
+      createTask(payload)
+    }
+
+    handleDialogClose()
   }
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          <TextField
-            value={newTodoText}
-            onChange={(e) => setNewTodoText(e.target.value)}
-            label="New todo"
-            variant="outlined"
-            fullWidth
-            size="small"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                handleAddTodo()
-              }
-            }}
-          />
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DateTimePicker
-              label="Due Date (Optional)"
-              value={newTodoDueDate}
-              onChange={(newValue) => setNewTodoDueDate(newValue)}
-              slotProps={{
-                textField: { size: 'small', fullWidth: true },
-              }}
-            />
-          </LocalizationProvider>
-          <Button variant="contained" onClick={handleAddTodo}>
-            Add
-          </Button>
-        </Box>
-        <TextField
-          value={newTodoDescription}
-          onChange={(e) => setNewTodoDescription(e.target.value)}
-          label="Description (optional)"
-          variant="outlined"
-          fullWidth
-          size="small"
-          multiline
-          minRows={2}
-        />
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          flexWrap: 'wrap',
+          mb: 2,
+        }}
+      >
+        <Button variant="contained" onClick={handleCreateOpen}>
+          Add
+        </Button>
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <InputLabel id="filter-select-label">Status Filter</InputLabel>
+          <Select
+            labelId="filter-select-label"
+            value={filter}
+            label="Status Filter"
+            onChange={handleFilterChange}
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="completed">Completed</MenuItem>
+            <MenuItem value="not-completed">Not Completed</MenuItem>
+          </Select>
+        </FormControl>
+
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <InputLabel id="due-status-filter-select-label">
+            Due Date Filter
+          </InputLabel>
+          <Select
+            labelId="due-status-filter-select-label"
+            value={dueStatusFilter}
+            label="Due Date Filter"
+            onChange={(event) =>
+              setDueStatusFilter(
+                event.target.value as 'all' | 'past-due' | 'upcoming',
+              )
+            }
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="past-due">Past Due</MenuItem>
+            <MenuItem value="upcoming">Upcoming</MenuItem>
+          </Select>
+        </FormControl>
       </Box>
-
-      <FormControl size="small" sx={{ mb: 2, minWidth: 120 }}>
-        <InputLabel id="filter-select-label">Status Filter</InputLabel>
-        <Select
-          labelId="filter-select-label"
-          value={filter}
-          label="Status Filter"
-          onChange={handleFilterChange}
-        >
-          <MenuItem value="all">All</MenuItem>
-          <MenuItem value="completed">Completed</MenuItem>
-          <MenuItem value="not-completed">Not Completed</MenuItem>
-        </Select>
-      </FormControl>
-
-      <FormControl size="small" sx={{ mb: 2, minWidth: 120, ml: 2 }}>
-        <InputLabel id="due-status-filter-select-label">
-          Due Date Filter
-        </InputLabel>
-        <Select
-          labelId="due-status-filter-select-label"
-          value={dueStatusFilter}
-          label="Due Date Filter"
-          onChange={(event) =>
-            setDueStatusFilter(
-              event.target.value as 'all' | 'past-due' | 'upcoming',
-            )
-          }
-        >
-          <MenuItem value="all">All</MenuItem>
-          <MenuItem value="past-due">Past Due</MenuItem>
-          <MenuItem value="upcoming">Upcoming</MenuItem>
-        </Select>
-      </FormControl>
 
       <List>
         {tasks.map((task) => {
@@ -255,21 +232,23 @@ function App() {
         })}
       </List>
 
-      <Dialog open={Boolean(editingTask)} onClose={handleEditClose} fullWidth>
-        <DialogTitle>Edit Task</DialogTitle>
+      <Dialog open={dialogMode !== null} onClose={handleDialogClose} fullWidth>
+        <DialogTitle>
+          {dialogMode === 'edit' ? 'Edit Task' : 'New Task'}
+        </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
-              value={editTitle}
-              onChange={(event) => setEditTitle(event.target.value)}
+              value={draftTitle}
+              onChange={(event) => setDraftTitle(event.target.value)}
               label="Task title"
               variant="outlined"
               size="small"
               fullWidth
             />
             <TextField
-              value={editDescription}
-              onChange={(event) => setEditDescription(event.target.value)}
+              value={draftDescription}
+              onChange={(event) => setDraftDescription(event.target.value)}
               label="Description (optional)"
               variant="outlined"
               size="small"
@@ -280,8 +259,8 @@ function App() {
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DateTimePicker
                 label="Due Date (Optional)"
-                value={editDueDate}
-                onChange={(newValue) => setEditDueDate(newValue)}
+                value={draftDueDate}
+                onChange={(newValue) => setDraftDueDate(newValue)}
                 slotProps={{
                   textField: { size: 'small', fullWidth: true },
                 }}
@@ -290,13 +269,13 @@ function App() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleEditClose}>Cancel</Button>
+          <Button onClick={handleDialogClose}>Cancel</Button>
           <Button
             variant="contained"
-            onClick={handleEditSave}
-            disabled={!editTitle.trim()}
+            onClick={handleDialogSave}
+            disabled={!draftTitle.trim()}
           >
-            Save
+            {dialogMode === 'edit' ? 'Save' : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>
