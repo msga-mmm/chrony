@@ -8,11 +8,13 @@ export interface Task {
   done: boolean
   due_date: string | null
   is_past_due?: boolean
+  deleted?: string | null
 }
 
 interface UseTasksParams {
   done?: boolean | null
   isPastDue?: boolean | null
+  deleted?: boolean | null
 }
 
 export function useTasks(params?: UseTasksParams) {
@@ -23,6 +25,7 @@ export function useTasks(params?: UseTasksParams) {
         params: {
           done: params?.done,
           is_past_due: params?.isPastDue,
+          is_deleted: params?.deleted,
         },
       })
       return data

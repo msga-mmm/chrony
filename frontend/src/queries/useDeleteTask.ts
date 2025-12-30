@@ -5,14 +5,11 @@ export function useDeleteTask() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async (id: number) => {
       await axios.delete(`http://localhost:8000/api/tasks/${id}/`)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['tasks'],
-      })
+      queryClient.invalidateQueries({ queryKey: ['tasks'], exact: false })
     },
   })
 }
-
