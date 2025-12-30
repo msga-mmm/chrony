@@ -1,16 +1,18 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 
-interface Task {
+interface TaskUpdate {
   id: number
-  done: boolean
+  title?: string
+  due_date?: string | null
+  done?: boolean
 }
 
 export function useUpdateTask() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (payload: Task) => {
+    mutationFn: async (payload: TaskUpdate) => {
       const { data } = await axios.patch(
         `http://localhost:8000/api/tasks/${payload.id}/`,
         payload,
