@@ -4,6 +4,10 @@ import {
   Box,
   Button,
   Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   List,
   ListItem,
   ListItemText,
@@ -16,11 +20,12 @@ import {
   type SelectChangeEvent,
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import dayjs, { Dayjs } from 'dayjs'
-import { useTasks } from '@/queries/useTasks'
+import { useTasks, type Task } from '@/queries/useTasks'
 import { useCreateTask } from '@/queries/useCreateTask'
 import { useUpdateTask } from '@/queries/useUpdateTask'
 import { useDeleteTask } from '@/queries/useDeleteTask'
@@ -56,6 +61,9 @@ function App() {
   const { mutate: deleteTask } = useDeleteTask()
   const [newTodoText, setNewTodoText] = useState('')
   const [newTodoDueDate, setNewTodoDueDate] = useState<Dayjs | null>(null)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editDueDate, setEditDueDate] = useState<Dayjs | null>(null)
 
   const handleAddTodo = () => {
     if (!newTodoText.trim()) return
@@ -69,6 +77,30 @@ function App() {
 
   const handleFilterChange = (event: SelectChangeEvent) => {
     setFilter(event.target.value as 'all' | 'completed' | 'not-completed')
+  }
+
+  const handleEditOpen = (task: Task) => {
+    setEditingTask(task)
+    setEditTitle(task.title)
+    setEditDueDate(task.due_date ? dayjs(task.due_date) : null)
+  }
+
+  const handleEditClose = () => {
+    setEditingTask(null)
+    setEditTitle('')
+    setEditDueDate(null)
+  }
+
+  const handleEditSave = () => {
+    if (!editingTask) return
+    const trimmedTitle = editTitle.trim()
+    if (!trimmedTitle) return
+    updateTask({
+      id: editingTask.id,
+      title: trimmedTitle,
+      due_date: editDueDate ? editDueDate.toISOString() : null,
+    })
+    handleEditClose()
   }
 
   return (
@@ -168,6 +200,13 @@ function App() {
                 }}
               />
               <IconButton
+                aria-label="edit"
+                onClick={() => handleEditOpen(task)}
+                size="small"
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+              <IconButton
                 aria-label="delete"
                 onClick={() => deleteTask(task.id)}
                 size="small"
@@ -178,6 +217,42 @@ function App() {
           )
         })}
       </List>
+
+      <Dialog open={Boolean(editingTask)} onClose={handleEditClose} fullWidth>
+        <DialogTitle>Edit Task</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField
+              value={editTitle}
+              onChange={(event) => setEditTitle(event.target.value)}
+              label="Task title"
+              variant="outlined"
+              size="small"
+              fullWidth
+            />
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DateTimePicker
+                label="Due Date (Optional)"
+                value={editDueDate}
+                onChange={(newValue) => setEditDueDate(newValue)}
+                slotProps={{
+                  textField: { size: 'small', fullWidth: true },
+                }}
+              />
+            </LocalizationProvider>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleEditClose}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleEditSave}
+            disabled={!editTitle.trim()}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }
