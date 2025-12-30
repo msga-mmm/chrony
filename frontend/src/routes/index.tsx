@@ -12,6 +12,7 @@ import {
   ListItem,
   ListItemText,
   TextField,
+  Typography,
   FormControl,
   InputLabel,
   Select,
@@ -60,9 +61,11 @@ function App() {
   const { mutate: updateTask } = useUpdateTask()
   const { mutate: deleteTask } = useDeleteTask()
   const [newTodoText, setNewTodoText] = useState('')
+  const [newTodoDescription, setNewTodoDescription] = useState('')
   const [newTodoDueDate, setNewTodoDueDate] = useState<Dayjs | null>(null)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [editTitle, setEditTitle] = useState('')
+  const [editDescription, setEditDescription] = useState('')
   const [editDueDate, setEditDueDate] = useState<Dayjs | null>(null)
 
   const handleAddTodo = () => {
@@ -70,8 +73,10 @@ function App() {
     createTask({
       title: newTodoText,
       due_date: newTodoDueDate ? newTodoDueDate.toISOString() : null,
+      description: newTodoDescription.trim() || null,
     })
     setNewTodoText('')
+    setNewTodoDescription('')
     setNewTodoDueDate(null)
   }
 
@@ -82,12 +87,14 @@ function App() {
   const handleEditOpen = (task: Task) => {
     setEditingTask(task)
     setEditTitle(task.title)
+    setEditDescription(task.description ?? '')
     setEditDueDate(task.due_date ? dayjs(task.due_date) : null)
   }
 
   const handleEditClose = () => {
     setEditingTask(null)
     setEditTitle('')
+    setEditDescription('')
     setEditDueDate(null)
   }
 
@@ -99,40 +106,53 @@ function App() {
       id: editingTask.id,
       title: trimmedTitle,
       due_date: editDueDate ? editDueDate.toISOString() : null,
+      description: editDescription.trim() || null,
     })
     handleEditClose()
   }
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <TextField
+            value={newTodoText}
+            onChange={(e) => setNewTodoText(e.target.value)}
+            label="New todo"
+            variant="outlined"
+            fullWidth
+            size="small"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handleAddTodo()
+              }
+            }}
+          />
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DateTimePicker
+              label="Due Date (Optional)"
+              value={newTodoDueDate}
+              onChange={(newValue) => setNewTodoDueDate(newValue)}
+              slotProps={{
+                textField: { size: 'small', fullWidth: true },
+              }}
+            />
+          </LocalizationProvider>
+          <Button variant="contained" onClick={handleAddTodo}>
+            Add
+          </Button>
+        </Box>
         <TextField
-          value={newTodoText}
-          onChange={(e) => setNewTodoText(e.target.value)}
-          label="New todo"
+          value={newTodoDescription}
+          onChange={(e) => setNewTodoDescription(e.target.value)}
+          label="Description (optional)"
           variant="outlined"
           fullWidth
           size="small"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              handleAddTodo()
-            }
-          }}
+          multiline
+          minRows={2}
         />
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DateTimePicker
-            label="Due Date (Optional)"
-            value={newTodoDueDate}
-            onChange={(newValue) => setNewTodoDueDate(newValue)}
-            slotProps={{
-              textField: { size: 'small', fullWidth: true },
-            }}
-          />
-        </LocalizationProvider>
-        <Button variant="contained" onClick={handleAddTodo}>
-          Add
-        </Button>
       </Box>
 
       <FormControl size="small" sx={{ mb: 2, minWidth: 120 }}>
@@ -171,6 +191,32 @@ function App() {
 
       <List>
         {tasks.map((task) => {
+          const secondary =
+            task.description || task.due_date ? (
+              <>
+                {task.description ? (
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ display: 'block' }}
+                  >
+                    {task.description}
+                  </Typography>
+                ) : null}
+                {task.due_date ? (
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    color={task.is_past_due ? 'error.main' : 'text.secondary'}
+                    sx={{ display: 'block' }}
+                  >
+                    Due: {dayjs(task.due_date).format('YYYY-MM-DD HH:mm')}
+                  </Typography>
+                ) : null}
+              </>
+            ) : null
+
           return (
             <ListItem key={task.id} disablePadding>
               <Checkbox
@@ -185,18 +231,9 @@ function App() {
               />
               <ListItemText
                 primary={task.title}
-                secondary={
-                  task.due_date
-                    ? `Due: ${dayjs(task.due_date).format('YYYY-MM-DD HH:mm')}`
-                    : null
-                }
+                secondary={secondary}
                 sx={{
                   textDecoration: task.done ? 'line-through' : 'none',
-                }}
-                slotProps={{
-                  secondary: {
-                    color: task.is_past_due ? 'red' : undefined,
-                  },
                 }}
               />
               <IconButton
@@ -229,6 +266,16 @@ function App() {
               variant="outlined"
               size="small"
               fullWidth
+            />
+            <TextField
+              value={editDescription}
+              onChange={(event) => setEditDescription(event.target.value)}
+              label="Description (optional)"
+              variant="outlined"
+              size="small"
+              fullWidth
+              multiline
+              minRows={3}
             />
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DateTimePicker
