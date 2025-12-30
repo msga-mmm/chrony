@@ -1,26 +1,26 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useTasks } from '../queries/useTasks'; // Changed from useDeletedTasks
-import { useRestoreTask } from '../queries/useRestoreTask';
+import { createFileRoute } from '@tanstack/react-router'
+import { useTasks } from '../queries/useTasks' // Changed from useDeletedTasks
+import { useRestoreTask } from '../queries/useRestoreTask'
 
 export const Route = createFileRoute('/deleted-tasks')({
   component: DeletedTasksComponent,
-});
+})
 
 function DeletedTasksComponent() {
-  const { data: deletedTasks, isLoading, isError } = useTasks({ deleted: true }); // Changed to useTasks with deleted: true
-  const { mutate: restoreTask } = useRestoreTask();
+  const { data: deletedTasks, isLoading, isError } = useTasks({ deleted: true }) // Changed to useTasks with deleted: true
+  const { mutate: restoreTask } = useRestoreTask()
 
   if (isLoading) {
-    return <div>Loading deleted tasks...</div>;
+    return <div>Loading deleted tasks...</div>
   }
 
   if (isError) {
-    return <div>Error loading deleted tasks.</div>;
+    return <div>Error loading deleted tasks.</div>
   }
 
   const handleRestore = (taskId: number) => {
-    restoreTask(taskId);
-  };
+    restoreTask(taskId)
+  }
 
   return (
     <div className="p-4">
@@ -48,5 +48,5 @@ function DeletedTasksComponent() {
         <p className="text-gray-600">No deleted tasks found.</p>
       )}
     </div>
-  );
+  )
 }
