@@ -4,6 +4,7 @@ import axios from 'axios'
 export interface Task {
   id: number
   title: string
+  description: string | null
   created_at: string
   done: boolean
   due_date: string | null

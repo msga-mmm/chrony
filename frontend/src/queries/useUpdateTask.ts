@@ -6,6 +6,7 @@ interface TaskUpdate {
   title?: string
   due_date?: string | null
   done?: boolean
+  description?: string | null
 }
 
 export function useUpdateTask() {
